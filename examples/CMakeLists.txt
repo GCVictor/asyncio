@@ -1,0 +1,10 @@
+set(SOURCES test_task.cc)
+
+foreach(source ${SOURCES})
+  get_filename_component(target ${source} NAME_WE)
+  add_executable(${target} ${source})
+  target_include_directories(${target} PRIVATE ${ASYNCIO_SOURCE_INCLUDE_DIRS})
+  target_include_directories(${target} PRIVATE ${GTEST_INCLUDE_DIRS})
+  target_link_libraries(${target} PRIVATE ${GTEST_BOTH_LIBRARIES})
+  target_link_libraries(${target} PRIVATE asyncio)
+endforeach()
