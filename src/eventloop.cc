@@ -1,11 +1,11 @@
-#include "asyncio/eventloop.h"
-
-#include "asyncio/task.hh"
+#include "asyncio/eventloop.hh"
 
 namespace asyncio {
 
 thread_local EventLoop loop;
 
-void EventLoop::Run() {}
+EventLoop& get_event_loop() { return loop; }
+
+TaskBase* current_task() { return loop.GetCurrentTask(); }
 
 }  // namespace asyncio

@@ -1,4 +1,4 @@
-set(SOURCES test_task.cc)
+set(SOURCES test_eventloop.cc test_task.cc)
 
 foreach(source ${SOURCES})
   get_filename_component(target ${source} NAME_WE)

@@ -1,6 +1,6 @@
 #include <gtest/gtest.h>
 
-#include <asyncio/task.hh>
+#include "asyncio/task.hh"
 
 asyncio::Task<int> return_int() { co_return 42; }
 

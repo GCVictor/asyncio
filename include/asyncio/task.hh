@@ -22,10 +22,18 @@ class TaskBase {
   TaskBase(std::coroutine_handle<> handle);
 
   /// \return The coroutine handle.
-  auto handle() const { return handle_; }
+  constexpr auto handle() const { return handle_; }
 
   /// \return The next task which may be nullptr if there is no next task.
   TaskBase* next() const { return next_; }
+  void set_next(TaskBase* next) { next_ = next; }
+
+  /// \return The previous task which may be nullptr if there is no previous
+  ///         task.
+  TaskBase* prev() const { return prev_; }
+  void set_prev(TaskBase* prev) { prev_ = prev; }
+
+  constexpr int id() const { return id_; }
 
   /// Resumes the coroutine associated with this task.
   /// If the coroutine is already finished, this function does nothing.
@@ -46,11 +54,14 @@ class TaskBase {
  protected:
   EventLoop& owner_;                ///< The event loop that owns this task.
   std::coroutine_handle<> handle_;  ///< The coroutine handle for this task.
-  TaskBase* next_;                  ///< Pointer to next task.
+  TaskBase* prev_;
+  TaskBase* next_;  ///< Pointer to next task.
   State state_;
+  int id_;
+  static int unique_id_;
 };
 
-template <typename T>
+template <typename T = void>
 struct Task : public TaskBase {
   struct promise_type;
 
@@ -65,7 +76,7 @@ struct Task : public TaskBase {
       return Task{std::coroutine_handle<promise_type>::from_promise(*this)};
     }
 
-    auto initial_suspend() { return std::suspend_never{}; }
+    auto initial_suspend() { return std::suspend_always{}; }
 
     auto final_suspend() noexcept { return std::suspend_always{}; }
 

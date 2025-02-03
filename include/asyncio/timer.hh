@@ -7,6 +7,9 @@
 #include <stdexcept>
 #include <thread>
 
+#include "asyncio/eventloop.hh"
+#include "asyncio/task.hh"
+
 namespace asyncio {
 
 class Timer {
@@ -25,24 +28,27 @@ class Timer {
       return timer_.state_ == State::Completed;
     }
 
-    void await_suspend(std::coroutine_handle<> h) {
+    void await_suspend(std::coroutine_handle<>) {
       std::unique_lock lock(timer_.mutex_);
 
       if (timer_.state_ != State::Pending) {
         return;
       }
 
-      timer_.coroutine_ = h;
-      timer_.thread_ = std::thread([this, delay = timer_.delay_] {
+      auto task = current_task();
+      task->SetBlocked();
+
+      std::cout << '[' << task->id() << " is blocked]\n";
+
+      timer_.thread_ = std::thread([this, task, delay = timer_.delay_] {
         std::this_thread::sleep_for(delay);
         std::unique_lock lock(timer_.mutex_);
 
         if (timer_.state_ == State::Pending) {
           timer_.state_ = State::Completed;
+          task->SetReady();
 
-          if (timer_.coroutine_) {
-            timer_.coroutine_.resume();
-          }
+          std::cout << '[' << task->id() << " is ready]\n";
         }
       });
     }
@@ -63,23 +69,18 @@ class Timer {
 
     if (state_ == State::Pending) {
       state_ = State::Cancelled;
+    }
 
-      if (thread_.joinable()) {
-        thread_.join();
-      }
-
-      if (coroutine_) {
-        coroutine_.destroy();
-      }
+    if (thread_.joinable()) {
+      thread_.join();
     }
   }
 
  private:
   std::chrono::steady_clock::duration delay_;
   std::thread thread_;
-  std::coroutine_handle<> coroutine_;
   std::mutex mutex_;
   std::atomic<State> state_;
 };
 
-}
+}  // namespace asyncio
