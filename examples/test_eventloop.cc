@@ -8,6 +8,7 @@ asyncio::Task<int> return_int() { co_return 42; }
 
 asyncio::Task<int> sleep_ms(int n) {
   co_await asyncio::Timer{std::chrono::seconds{n}};
+  co_await asyncio::Timer{std::chrono::seconds{n}};
   co_return 1;
 }
 
