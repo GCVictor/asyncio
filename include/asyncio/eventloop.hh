@@ -1,6 +1,7 @@
 #pragma once
 
 #include <iostream>
+#include <tuple>
 #include <type_traits>
 
 #include "asyncio/task.hh"
@@ -19,6 +20,9 @@ class EventLoop {
     head_->set_next(head_);
     head_->set_prev(head_);
   }
+
+  /// Release the memory for each task.
+  ~EventLoop() {}
 
   void Run() {
     while (!IsEmpty()) {
@@ -41,8 +45,11 @@ class EventLoop {
   }
 
   template <typename... Task>
-  void Gather(Task&&... tasks) {
+  auto Gather(Task&&... tasks) -> std::tuple<typename Task::type...> {
     (Append(tasks), ...);
+    Run();
+
+    return std::make_tuple(tasks.Get()...);
   }
 
   TaskBase* GetCurrentTask() const { return cur_; }

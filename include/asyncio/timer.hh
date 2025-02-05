@@ -38,8 +38,6 @@ class Timer {
       auto task = current_task();
       task->SetBlocked();
 
-      std::cout << '[' << task->id() << " is blocked]\n";
-
       timer_.thread_ = std::thread([this, task, delay = timer_.delay_] {
         std::this_thread::sleep_for(delay);
         std::unique_lock lock(timer_.mutex_);
@@ -47,8 +45,6 @@ class Timer {
         if (timer_.state_ == State::Pending) {
           timer_.state_ = State::Completed;
           task->SetReady();
-
-          std::cout << '[' << task->id() << " is ready]\n";
         }
       });
     }
